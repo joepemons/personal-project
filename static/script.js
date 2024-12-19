@@ -1,6 +1,25 @@
 let networkChart;
 let currentRefreshInterval;
 let refreshTimer;
+let isPageVisible = true;
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        isPageVisible = false;
+        // Clear existing refresh timer when page is hidden
+        if (refreshTimer) {
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+        }
+    } else {
+        isPageVisible = true;
+        // Immediately refresh data when page becomes visible
+        refreshData();
+        // Restart the refresh timer
+        setupRefreshInterval();
+    }
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeChart();
@@ -35,6 +54,7 @@ function initializeChart() {
 }
 
 function updateChart(data) {
+    if (!isPageVisible) return;  // Don't update if page isn't visible
     networkChart.data.labels = data.map(item => item.timestamp);
     networkChart.data.datasets[0].data = data.map(item => item.value);
     networkChart.update();
@@ -42,20 +62,22 @@ function updateChart(data) {
 
 function setupRefreshInterval() {
     const select = document.getElementById('refreshInterval');
-    select.addEventListener('change', function() {
-        if (refreshTimer) {
-            clearInterval(refreshTimer);
-        }
-        currentRefreshInterval = parseInt(this.value);
-        refreshTimer = setInterval(refreshData, currentRefreshInterval);
-    });
-    
-    // Initialize with default value
+    if (refreshTimer) {
+        clearInterval(refreshTimer);
+    }
     currentRefreshInterval = parseInt(select.value);
-    refreshTimer = setInterval(refreshData, currentRefreshInterval);
+    if (isPageVisible) {  // Only start refresh timer if page is visible
+        refreshTimer = setInterval(() => {
+            if (isPageVisible) {  // Double-check visibility before refreshing
+                refreshData();
+            }
+        }, currentRefreshInterval);
+    }
 }
 
 function refreshData() {
+    if (!isPageVisible) return;  // Don't refresh if page isn't visible
+    
     // Fetch metrics
     fetch('/get_current_metrics')
         .then(response => response.json())
@@ -70,6 +92,8 @@ function refreshData() {
 }
 
 function updateMetrics(data) {
+    if (!isPageVisible) return;  // Don't update if page isn't visible
+    
     for (const [key, value] of Object.entries(data)) {
         const elements = document.querySelectorAll(`[data-metric="${key}"]`);
         elements.forEach(element => {
@@ -86,6 +110,8 @@ function updateMetrics(data) {
 }
 
 function updateInterfaceStatus(data) {
+    if (!isPageVisible) return;  // Don't update if page isn't visible
+    
     const interfaces = ['lan', 'wan', 'opt1', 'opt2', 'opt3', 'opt4'];
     interfaces.forEach(iface => {
         const status = data[`${iface}_status`].state;
@@ -119,15 +145,3 @@ function toggleService(service) {
         messageDiv.style.display = 'block';
     });
 }
-
-// Add data-metric attributes to HTML elements
-document.addEventListener('DOMContentLoaded', function() {
-    const metricElements = document.querySelectorAll('.value, .timestamp');
-    metricElements.forEach(element => {
-        const card = element.closest('.data-card');
-        if (card) {
-            const title = card.querySelector('h2').textContent.toLowerCase().replace(/\s+/g, '_');
-            element.setAttribute('data-metric', title);
-        }
-    });
-});
