@@ -34,4 +34,4 @@ jobs:
       run: |
         echo "Deploying my router dashboard..."
         sleep 3
-        echo "✅ App deployed successfully!"
+        echo "App deployed successfully!"
