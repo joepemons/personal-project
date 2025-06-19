@@ -8,8 +8,8 @@ import pytz
 
 app = Flask(__name__)
 
-BASE_URL = "https://homeassistant.emonshomelab.com/api"
-API_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI3M2QwODc1MTZhZWQ0NGNjOWI4ZWJmMTdlZDYxNWRhOCIsImlhdCI6MTczMzQzMDIzMCwiZXhwIjoyMDQ4NzkwMjMwfQ.ttxKn0nOeXXMwHQtmHbP8usxQnso5kVMbVYS06PcZ7Y"
+BASE_URL = ""
+API_TOKEN = ""
 
 WEBHOOKS = {
     'ssh': '-8HrzwKLOwTuaOIRGM4jSknMs',
